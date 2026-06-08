@@ -57,6 +57,7 @@ router.put("/listings/:id",
     wrapAsync(async(req,res)=>{
     let{id} =req.params;
     await Listing.findByIdAndUpdate(id,{...req.body.listing});
+    req.flash("success","Successfully updated the listing!");   
     res.redirect("/listings");
 }));
 //DELETE route
@@ -64,6 +65,7 @@ router.delete("/listings/:id",wrapAsync(async (req,res)=>{
     let{ id } = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id)
     console.log(deletedListing);
+    req.flash("success","Successfully deleted the listing!");
     res.redirect("/listings");
 }));
 

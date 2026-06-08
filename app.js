@@ -42,13 +42,18 @@ const sessionOptions = {
     }
 }
 
-app.use(session(sessionOptions));
-app.use(flash());
-
 app.get("/",(req,res)=>{
     res.send("root is working");
 });
 
+app.use(session(sessionOptions));
+app.use(flash());
+
+app.use((req,res,next)=>{
+    res.locals.success = req.flash("success");
+    res.locals.error = req.flash("error");
+    next();
+});
 
 app.use("/",listingRoutes);
 app.use("listings/:id/reviews",reviews);
