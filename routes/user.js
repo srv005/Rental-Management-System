@@ -7,14 +7,21 @@ router.get("/signup",(req,res)=>{
     res.render("users/signup.ejs");
 });
 
-router.post("/signup",wrapAsync(async(req,res)=>{
+router.post(
+    "/signup",
+    wrapAsync(async(req,res)=>{
     try{
     let {username,email,password}= req.body;
     const newUser = new User({email,username});
     const registerUser = await User.register(newUser,password);  
     console.log(registerUser);
-    req.flash("success","Welcome to the Wanderlust");
-    res.redirect("/listings");
+    req.login(registerUser,(err)=>{
+        if(err){
+            return next(err);
+        }
+        req.flash("success","Welcome to the Wanderlust");
+        res.redirect("/listings");
+    });
     } catch(e){
         req.flash("error",e.message);
         res.redirect("/login");
@@ -34,6 +41,16 @@ router.post(
 }),
 async(req,res)=>{
     req.flash("success","Welcome back!");
+    res.redirect("/listings");
+});
+
+router.get("/logout",(req,res)=>{
+    req.logout((err)=>{
+        if(err){
+            return next(err);
+        }
+    });
+    req.flash("success","Logged you out!");
     res.redirect("/listings");
 });
 
