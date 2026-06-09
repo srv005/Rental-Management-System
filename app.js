@@ -56,7 +56,7 @@ app.use((req,res,next)=>{
 });
 
 app.use("/",listingRoutes);
-app.use("listings/:id/reviews",reviews);
+app.use("/listings/:id/reviews",reviews);
 
 
 app.use( (req, res, next) => {
