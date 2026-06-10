@@ -42,7 +42,7 @@ router.get("/:id",wrapAsync(async (req,res)=>{
 }));
 
 //Create route
-router.post("/listings",
+router.post("/",
     isLoggedIn,
     validListing,
     wrapAsync(async (req,res,next)=>{
@@ -70,6 +70,10 @@ router.put("/:id",
     validListing,
     wrapAsync(async(req,res)=>{
     let{id} =req.params;
+    if(!currUser && listing.owner._id.equals(res.locals.currUser._id)){
+        req.flash("error","You don't have permission to do that!");
+        return res.redirect("/listings");
+    }
     await Listing.findByIdAndUpdate(id,{...req.body.listing});
     req.flash("success","Successfully updated the listing!");   
     res.redirect("/listings");
