@@ -1,21 +1,9 @@
 const express = require('express');
 const router = express.Router();   
 const wrapAsync = require("../utils/wrapAsync"); 
-const { listingSchema} = require("../schema.js");   
-const ExpressError = require("../utils/ExpressError.js");
 const Listing = require("../models/listing.js");
-const { isLoggedIn } = require("../middleware.js");
+const { isLoggedIn, isOwner,validListing } = require("../middleware.js");
 
-const validListing = (req,res,next)=>{ 
-    let { error } = listingSchema.validate(req.body);
-
-    if(error){
-        let msg = error.details.map(el => el.message).join(",");
-        throw new ExpressError(400, msg);
-    } else {
-        next();
-    }
-};
 
 //INDEX route
 router.get("/",wrapAsync(async (req,res)=>{
@@ -54,7 +42,10 @@ router.post("/",
 }));
 
 //Edit route
-router.get("/:id/edit",isLoggedIn,wrapAsync(async (req,res)=>{
+router.get("/:id/edit",
+    isLoggedIn,
+    isOwner,
+    wrapAsync(async (req,res)=>{
     let{id} =req.params;
     const listing = await Listing.findById(id);
         if(!listing){
@@ -67,19 +58,19 @@ router.get("/:id/edit",isLoggedIn,wrapAsync(async (req,res)=>{
 //Update route
 router.put("/:id",
     isLoggedIn,
+    isOwner,
     validListing,
     wrapAsync(async(req,res)=>{
     let{id} =req.params;
-    if(!currUser && listing.owner._id.equals(res.locals.currUser._id)){
-        req.flash("error","You don't have permission to do that!");
-        return res.redirect("/listings");
-    }
     await Listing.findByIdAndUpdate(id,{...req.body.listing});
     req.flash("success","Successfully updated the listing!");   
     res.redirect("/listings");
 }));
 //DELETE route
-router.delete("/:id",isLoggedIn,wrapAsync(async (req,res)=>{
+router.delete("/:id",
+    isLoggedIn,
+    isOwner,
+    wrapAsync(async (req,res)=>{
     let{ id } = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id)
     console.log(deletedListing);
