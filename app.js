@@ -1,7 +1,7 @@
 if(process.env.NODE_ENV !== "production"){ 
     require ("dotenv").config();
 }
-console.log(process.env.SECRET);
+
 
 const express = require("express");
 const app = express();
@@ -11,6 +11,7 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const ExpressError = require("./utils/ExpressError.js");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -42,20 +43,31 @@ app.use(methodOverride("_method"));
 app.engine("ejs",ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
 
+const store = MongoStore.create({
+    mongoUrl: dburl,
+    touchAfter: 24 * 3600,
+});
+
+store.on("error", (err) => {
+    console.log("ERROR IN SESSION STORE", err);
+});
+
 const sessionOptions = {
-    secret:"mysupersecret",
-    resave:false,
-    saveUninitialized:true,
-    cookie :{
-        expires:Date.now() + 7*24*60*60*1000,
-        maxAge:7*24*60*60*1000,
-        httpOnly:true,
-    }
-}
+    store,
+    secret: "mysupersecret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+    },
+};
 
 // app.get("/",(req,res)=>{
 //     res.send("root is working");
 // });
+
 
 app.use(session(sessionOptions));
 app.use(flash());
